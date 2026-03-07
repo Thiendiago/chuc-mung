@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8/3 - Giai Điệu Yêu Thương</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 100;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 15px 35px rgba(233, 30, 99, 0.2);
+            border: 2px solid #ffffff;
+            max-width: 80%;
+        }
+
+        h1 {
+            color: #ad1457;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .gift-box {
+            font-size: 130px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            user-select: none;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.15) rotate(-5deg);
+        }
+
+        #message {
+            display: none;
+            color: #880e4f;
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-top: 25px;
+            line-height: 1.5;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <div class="container">
+        <h1>Happy Women's Day!</h1>
+        <p id="guide" style="color: #c2185b; font-style: italic;">Chạm vào hộp quà để lắng nghe giai điệu... 🎵</p>
+        <div class="gift-box" id="gift" onclick="openGift(event)">🎁</div>
+        <div id="message">
+            ✨ 🌹 ✨<br>
+            Chúc người phụ nữ tuyệt vời nhất<br>
+            luôn hạnh phúc, xinh đẹp và được yêu thương!<br>
+            Cảm ơn bạn vì đã là một phần của thế giới này. ❤️
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        const items = ['❤️', '💖', '🌹', '🌸', '✨', '💎'];
+
+        class Particle {
+            constructor(x, y, color, type) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.type = type; 
+                this.size = type === 'emoji' ? Math.random() * 25 + 15 : Math.random() * 5 + 2;
+                this.speedX = (Math.random() - 0.5) * 12;
+                this.speedY = (Math.random() - 0.5) * 12 - 2; // Bắn lên trên một chút
+                this.gravity = 0.1;
+                this.opacity = 1;
+                this.decay = Math.random() * 0.01 + 0.005;
+                this.emoji = items[Math.floor(Math.random() * items.length)];
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                if (this.type === 'emoji') {
+                    ctx.font = `${this.size}px Arial`;
+                    ctx.fillText(this.emoji, this.x, this.y);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            update() {
+                this.speedY += this.gravity;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= this.decay;
+            }
+        }
+
+        function createExplosion(x, y) {
+            const colors = ['#ff4081', '#f48fb1', '#ce93d8', '#ffffff', '#ffd54f'];
+            // Pháo hoa điểm
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)], 'dot'));
+            }
+            // Trái tim và hoa hồng
+            for (let i = 0; i < 12; i++) {
+                particles.push(new Particle(x, y, null, 'emoji'));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].opacity <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function openGift(e) {
+            const gift = document.getElementById('gift');
+            const msg = document.getElementById('message');
+            const guide = document.getElementById('guide');
+            const music = document.getElementById('bgMusic');
+
+            // 1. Phát nhạc
+            music.play().catch(err => console.log("Cần tương tác để phát nhạc"));
+
+            // 2. Hiệu ứng mở quà
+            gift.innerHTML = '💝';
+            gift.style.transform = 'scale(1.3)';
+            guide.style.opacity = '0';
+            setTimeout(() => { guide.style.display = 'none'; }, 500);
+            msg.style.display = 'block';
+
+            // 3. Nổ pháo hoa liên hoàn
+            const rect = gift.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+
+            let count = 0;
+            const interval = setInterval(() => {
+                createExplosion(cx, cy);
+                // Bắn thêm pháo hoa ngẫu nhiên ở các góc màn hình
+                createExplosion(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+                count++;
+                if (count > 12) clearInterval(interval);
+            }, 250);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        animate();
+    </script>
+</body>
+</html>
